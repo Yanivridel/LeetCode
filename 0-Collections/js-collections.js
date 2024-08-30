@@ -9,6 +9,25 @@ function ListNode(val, next) {
 
 export const linkedList = { ListNode };
 
+/* TREES */
+function TreeNode(val, left, right) {
+    this.val = (val===undefined ? 0 : val)
+    this.left = (left===undefined ? null : left)
+    this.right = (right===undefined ? null : right)
+}
+
+function inOrder(root,arr){
+    if (!root) {
+        arr.push(null);
+        return;
+    }
+    arr.push(root.val);
+    inOrder(root.left, arr);
+    inOrder(root.right, arr);
+}
+
+export const tree = { TreeNode, inOrder };
+
 /* HEAPS */
 // Min Heap for Numbers
 class MinHeapNum {

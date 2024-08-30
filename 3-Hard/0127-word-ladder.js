@@ -11,6 +11,7 @@
 // and a dictionary wordList, 
 // return the number of words in the shortest transformation
 //  sequence from beginWord to endWord, or 0 if no such sequence exists.
+import { graph } from './../0-Collections/js-collections.js';
 
 var ladderLength = function(beginWord, endWord, wordList) {
     let adjacencyList = {};
@@ -19,46 +20,19 @@ var ladderLength = function(beginWord, endWord, wordList) {
     if(!wordList.includes(beginWord)) wordList.push(beginWord)
 
     for(let i=0; i < wordList.length; i++)
-        addVertex(wordList[i],adjacencyList);
+        graph.addVertex(wordList[i],adjacencyList);
 
     for(let i=0; i < wordList.length; i++)
         for(let j=i+1; j < wordList.length; j++)
             if(check1diff(wordList[i],wordList[j]))
-                addEdge(wordList[i],wordList[j],adjacencyList);
+                graph.addEdge(wordList[i],wordList[j],adjacencyList, 1);
 
-    const distance = bfsWithDistances(beginWord, adjacencyList);
+    const { distances } = graph.BFS(beginWord, adjacencyList);
+    console.log(distances);
     
-    return distance[endWord] ? distance[endWord]+1 : 0;
+    return distances[endWord] ? distances[endWord]+1 : 0;
 };
 
-function bfsWithDistances(startingVertex, adjacencyList) {
-    let queue = [startingVertex];
-    let visited = {};
-    let distances = {};
-
-    visited[startingVertex] = true;
-    distances[startingVertex] = 0;
-
-    while (queue.length > 0) {
-        let currentVertex = queue.shift();
-
-        adjacencyList[currentVertex].forEach(neighbor => {
-            if (!visited[neighbor]) {
-                visited[neighbor] = true;
-                distances[neighbor] = distances[currentVertex] + 1;
-                queue.push(neighbor);
-            }
-        });
-    }
-    return distances;
-}
-function addVertex(vertex, adjacencyList) {
-    adjacencyList[vertex] = [];
-}
-function addEdge(vertex1, vertex2, adjacencyList) {
-    adjacencyList[vertex1].push(vertex2);
-    adjacencyList[vertex2].push(vertex1);
-}
 function check1diff(word1, word2) {
     let count = 0;
     for(let i=0; i < word1.length; i++){
@@ -70,16 +44,15 @@ function check1diff(word1, word2) {
 }
 
 
-
-// let beginWord = "hit", endWord = "cog";
-// const wordList = ["hot","dot","dog","lot","log","cog"];
+let beginWord = "hit", endWord = "cog";
+const wordList = ["hot","dot","dog","lot","log","cog"];
 // const wordList = ["hot","dot","dog","lot","log"];
 
 // let beginWord = "gtone", endWord = "spite";
 // const wordList = ["stone","stony","story","store","spore","spire","spite",]
 
-let beginWord = "hot", endWord = "dog";
-const wordList = ["hot","dog"];
+// let beginWord = "hot", endWord = "dog";
+// const wordList = ["hot","dog"];
 console.log(ladderLength(beginWord,endWord,wordList));
 
 
