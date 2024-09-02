@@ -16,17 +16,35 @@ function TreeNode(val, left, right) {
     this.right = (right===undefined ? null : right)
 }
 
-function inOrder(root,arr){
+function preOrder(root,arr){
     if (!root) {
-        arr.push(null);
+        // arr.push(null);
         return;
     }
     arr.push(root.val);
+    preOrder(root.left, arr);
+    preOrder(root.right, arr);
+}
+function inOrder(root,arr){
+    if (!root) {
+        // arr.push(null);
+        return;
+    }
     inOrder(root.left, arr);
+    arr.push(root.val);
     inOrder(root.right, arr);
 }
+function postOrder(root,arr){
+    if (!root) {
+        // arr.push(null);
+        return;
+    }
+    postOrder(root.left, arr);
+    postOrder(root.right, arr);
+    arr.push(root.val);
+}
 
-export const tree = { TreeNode, inOrder };
+export const tree = { TreeNode, inOrder, preOrder, postOrder};
 
 /* HEAPS */
 // Min Heap for Numbers
@@ -34,7 +52,6 @@ class MinHeapNum {
     constructor() {
         this.heap = [];
     }
- 
     // Helper Methods
     getLeftChildIndex(parentIndex) {
         return 2 * parentIndex + 1;
@@ -63,26 +80,18 @@ class MinHeapNum {
     parent(index) {
         return this.heap[this.getParentIndex(index)];
     }
- 
-    // Functions to create Min Heap
-     
     swap(indexOne, indexTwo) {
         const temp = this.heap[indexOne];
         this.heap[indexOne] = this.heap[indexTwo];
         this.heap[indexTwo] = temp;
     }
- 
     peek() {
         if (this.heap.length === 0) {
             return null;
         }
         return this.heap[0];
     }
-     
-    // Removing an element will remove the
-    // top element with highest priority then
-    // heapifyDown will be called 
-    remove() {
+    remove(){
         if (this.heap.length === 0) {
             return null;
         }
@@ -92,28 +101,25 @@ class MinHeapNum {
         this.heapifyDown();
         return item;
     }
- 
     add(item) {
         this.heap.push(item);
         this.heapifyUp();
     }
- 
     heapifyUp() {
         let index = this.heap.length - 1;
-        while (this.hasParent(index) && this.parent(index) > this.heap[index]) {
+        while (this.hasParent(index) && this.parent(index).priority > this.heap[index].priority) {
             this.swap(this.getParentIndex(index), index);
             index = this.getParentIndex(index);
         }
     }
- 
     heapifyDown() {
         let index = 0;
         while (this.hasLeftChild(index)) {
             let smallerChildIndex = this.getLeftChildIndex(index);
-            if (this.hasRightChild(index) && this.rightChild(index) < this.leftChild(index)) {
+            if (this.hasRightChild(index) && this.rightChild(index).priority < this.leftChild(index).priority) {
                 smallerChildIndex = this.getRightChildIndex(index);
             }
-            if (this.heap[index] < this.heap[smallerChildIndex]) {
+            if (this.heap[index].priority <= this.heap[smallerChildIndex].priority) {
                 break;
             } else {
                 this.swap(index, smallerChildIndex);
@@ -121,7 +127,9 @@ class MinHeapNum {
             index = smallerChildIndex;
         }
     }
-     
+    isEmpty() {
+        return this.heap.length === 0;
+    }
     printHeap() {
         var heap =` ${this.heap[0]} `
         for(var i = 1; i<this.heap.length;i++) {
@@ -262,9 +270,12 @@ function BFS(startingVertex, adjacencyList) {
     return { distances, PI };
 }
 function addVertex(vertex, adjacencyList) {
-    adjacencyList[vertex] = [];
+    if (!adjacencyList.hasOwnProperty(vertex))
+        adjacencyList[vertex] = [];
 }
 function addEdge(vertex1, vertex2, adjacencyList, undirected = false) {
+    addVertex(vertex1,adjacencyList);
+    addVertex(vertex2,adjacencyList);
     adjacencyList[vertex1].push(vertex2);
     if(undirected) adjacencyList[vertex2].push(vertex1);
 }
@@ -272,7 +283,16 @@ function removeEdge(vertex1, vertex2, adjacencyList, undirected = false) {
     adjacencyList[vertex1] = adjacencyList[vertex1].filter(v => v !== vertex2);
     if(undirected) adjacencyList[vertex2] = adjacencyList[vertex2].filter(v => v !== vertex1);
 }
-
+function addWeightedEdge(vertex1, vertex2, weight, adjacencyList, undirected = false) {
+    addVertex(vertex1, adjacencyList);
+    addVertex(vertex2, adjacencyList);
+    adjacencyList[vertex1].push({ vertex: vertex2, weight: weight });
+    if (undirected) adjacencyList[vertex2].push({ vertex: vertex1, weight: weight });
+}
+function removeWeightedEdge(vertex1, vertex2, adjacencyList, undirected = false) {
+    adjacencyList[vertex1] = adjacencyList[vertex1].filter(edge => edge.vertex !== vertex2);
+    if (undirected) adjacencyList[vertex2] = adjacencyList[vertex2].filter(edge => edge.vertex !== vertex1);
+}
 function DFS(startingVertex, adjacencyList) {
     let stack = [startingVertex];
     let visited = {};
@@ -298,7 +318,6 @@ function DFS(startingVertex, adjacencyList) {
 
     return { distances, PI };
 }
-
 function SCC(adjacencyList) {
     const reversedAdjacencyList = reverseGraph(adjacencyList);
     const visited = {};
@@ -367,6 +386,98 @@ function SCC(adjacencyList) {
 
     return SCCs;
 }
+function DijkstraArray(start, adjacencyList) {
+    class PriorityQueue {
+        constructor() {
+            this.values = [];
+        }
+    
+        enqueue(vertex, priority) {
+            this.values.push({ vertex, priority });
+            this.sort();
+        }
+    
+        dequeue() {
+            return this.values.shift();
+        }
+    
+        isEmpty() {
+            return this.values.length === 0;
+        }
+    
+        sort() {
+            this.values.sort((a, b) => a.priority - b.priority);
+        }
+    }
+    const distances = {};
+    const PI = {};
+    const priorityQueue = new PriorityQueue();
+    const visited = new Set();
+
+    // Initialize distances and parents
+    for (let vertex in adjacencyList) {
+        distances[vertex] = Infinity;
+        PI[vertex] = null;
+    }
+    distances[start] = 0;
+
+    // Enqueue the starting vertex with distance 0
+    priorityQueue.enqueue(start, 0);
+
+    while (!priorityQueue.isEmpty()) {
+        const { vertex: currentVertex } = priorityQueue.dequeue();
+        if (visited.has(currentVertex)) continue;
+
+        visited.add(currentVertex);
+        
+        adjacencyList[currentVertex].forEach(({ vertex: neighbor, weight }) => {
+            const newDistance = distances[currentVertex] + weight;
+
+            if (newDistance < distances[neighbor]) {
+                distances[neighbor] = newDistance;
+                PI[neighbor] = currentVertex;
+                priorityQueue.enqueue(neighbor, newDistance);
+            }
+        });
+    }
+
+    return { distances, PI };
+}
+function DijkstraHeap(start, adjacencyList) {
+    const distances = {};
+    const PI = {};
+    const minHeap = new MinHeapNum();
+    const visited = new Set();
+
+    // Initialize distances and parents
+    for (let vertex in adjacencyList) {
+        distances[vertex] = Infinity;
+        PI[vertex] = null;
+    }
+    distances[start] = 0;
+
+    // Insert starting vertex into the heap with distance 0
+    minHeap.add({ vertex: start, priority: 0 });
+
+    while (!minHeap.isEmpty()) {
+        const { vertex: currentVertex } = minHeap.remove();
+        if (visited.has(currentVertex)) continue;
+
+        visited.add(currentVertex);
+
+        adjacencyList[currentVertex].forEach(({ vertex: neighbor, weight }) => {
+            const newDistance = distances[currentVertex] + weight;
+
+            if (newDistance < distances[neighbor]) {
+                distances[neighbor] = newDistance;
+                PI[neighbor] = currentVertex;
+                minHeap.add({ vertex: neighbor, priority: newDistance });
+            }
+        });
+    }
+
+    return { distances, PI };
+}
 
 // wrong
 function STRONG(adjacencyList) {
@@ -385,7 +496,6 @@ function STRONG(adjacencyList) {
 
     return directedAdjacencyList;
 }
-
 // wrong
 function directGraph(adjacencyList) {
     const directedAdjacencyList = {};
@@ -421,7 +531,8 @@ function directGraph(adjacencyList) {
     return directedAdjacencyList;
 }
 
-export const graph = { directGraph, addVertex, addEdge, removeEdge, DFS, SCC, BFS, STRONG };
+export const graph = { directGraph, addVertex, addEdge, removeEdge, DFS, SCC, BFS, 
+    addWeightedEdge, removeWeightedEdge, DijkstraArray, DijkstraHeap };
 
 /* UNION FIND */
 // Union Find for Numbers
