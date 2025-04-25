@@ -15,6 +15,7 @@
 // Using SCC for find cross edges O(V+E)
 import { graph } from './../0-Collections/js-collections.js';
 
+// WRONG SOLUTION DUE TO WRONG DIRECT GRAPH ALGORITHM
 var criticalConnections = function(n, connections) {
     const res = [];
     let adjacencyList = {};
