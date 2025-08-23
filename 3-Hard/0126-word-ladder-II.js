@@ -35,12 +35,12 @@ var findLadders = function(beginWord, endWord, wordList) {
         
     });
 
-    const [distance, pi] = BFS(beginWord, endWord, genericMap, length);
+    const [distance, pi] = BFS(beginWord, genericMap, length);
 
     return pi[endWord] === undefined ? [] : recoverPaths(endWord, pi);
 };
 
-function BFS(beginWord, endWord, genericMap, wordLength) {
+function BFS(beginWord, genericMap, wordLength) {
     const queue = [beginWord];
     const visited = {};
     const d = {};
@@ -100,8 +100,8 @@ function recoverPaths(endWord, pi) {
 }
 
 
-// let beginWord = "hit", endWord = "cog";
-// const wordList = ["hot","dot","dog","lot","log","cog"];
+let beginWord = "hit", endWord = "cog";
+const wordList = ["hot","dot","dog","lot","log","cog"];
 // const wordList = ["hot","dot","dog","lot","log"];
 
 // let beginWord = "gtone", endWord = "spite";
@@ -110,8 +110,9 @@ function recoverPaths(endWord, pi) {
 // let beginWord = "hot", endWord = "dog";
 // const wordList = ["hot","dog"];
 
-let beginWord = "red", endWord = "tax";
-const wordList = ["ted","tex","red","tax","tad","den","rex","pee"];
+// let beginWord = "red", endWord = "tax";
+// const wordList = ["ted","tex","red","tax","tad","den","rex","pee"];
+
 console.log(findLadders(beginWord,endWord,wordList));
 
 
